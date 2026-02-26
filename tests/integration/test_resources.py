@@ -1,5 +1,6 @@
-import yaml
 from pathlib import Path
+
+import yaml
 
 
 def test_docker_resource_isolation():

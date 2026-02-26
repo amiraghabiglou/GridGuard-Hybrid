@@ -4,11 +4,11 @@ investigation reports from structured anomaly detection outputs.
 Uses quantized Phi-3 or Llama-3-8B for edge deployment.
 """
 import json
-import re
-from typing import Dict, List, Optional
-from dataclasses import asdict
 import logging
+import re
+from dataclasses import asdict
 from pathlib import Path
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

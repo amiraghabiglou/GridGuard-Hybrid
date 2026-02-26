@@ -1,5 +1,6 @@
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI
 from pydantic import BaseModel
+
 from src.workers.tasks import process_theft_analysis
 
 app = FastAPI(title="GridGuard Production API")

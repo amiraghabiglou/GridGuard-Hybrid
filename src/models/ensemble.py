@@ -2,19 +2,20 @@
 Hybrid anomaly detection: Isolation Forest for unsupervised scoring +
 XGBoost for supervised classification with Isolation Forest features as input.
 """
-import numpy as np
-import pandas as pd
-import xgboost as xgb
-from sklearn.ensemble import IsolationForest
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.metrics import roc_auc_score, f1_score, precision_recall_curve, classification_report
-import joblib
 import json
 import logging
-from typing import Dict, Tuple, Optional, List
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+
+import joblib
+import numpy as np
+import pandas as pd
 import shap
+import xgboost as xgb
+from sklearn.ensemble import IsolationForest
+from sklearn.metrics import classification_report, f1_score, precision_recall_curve, roc_auc_score
+from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,9 @@
 # src/workers/tasks.py
 from celery import Celery
+
 from src.features.extractors import ElectricityFeatureExtractor
-from src.models.ensemble import HybridTheftDetector
 from src.llm.report_generator import TheftReportGenerator
+from src.models.ensemble import HybridTheftDetector
 
 celery_app = Celery("tasks", broker="redis://redis:6379/0", backend="redis://redis:6379/0")
 
