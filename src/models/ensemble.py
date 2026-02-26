@@ -144,16 +144,9 @@ class HybridTheftDetector:
 
         # Step 3: Train XGBoost with early stopping
         logger.info("Training XGBoost classifier...")
-        self.xgboost_model = xgb.XGBClassifier(
-            **self.xgb_params,
-            early_stopping_rounds=50
-        )
+        self.xgboost_model = xgb.XGBClassifier(**self.xgb_params, early_stopping_rounds=50)
 
-        self.xgboost_model.fit(
-            X_train_enhanced, y_train,
-            eval_set=[(X_val, y_val)],
-            verbose=False
-        )
+        self.xgboost_model.fit(X_train_enhanced, y_train, eval_set=[(X_val, y_val)], verbose=False)
 
         # Initialize SHAP for explainability
         self.shap_explainer = shap.TreeExplainer(self.xgboost_model)
