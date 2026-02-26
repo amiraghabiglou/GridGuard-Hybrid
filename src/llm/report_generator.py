@@ -114,6 +114,7 @@ Do not list raw numbers; interpret the pattern in operational terms."""
             return self._template_report(detection_result, pattern_type)
 
         # Generate with SLM
+
         if self.backend == "llama.cpp":
             output = self.model.create_chat_completion(
                 messages=[
@@ -123,13 +124,29 @@ Do not list raw numbers; interpret the pattern in operational terms."""
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-            report = output["choices"][0]["message"]["content"]
+            # To:
+            if isinstance(output, dict):
+                report = output["choices"][0]["message"]["content"]
+            else:
+                # Handle streaming response (Iterator case)
+                report = "".join(
+                    [chunk["choices"][0]["delta"].get("content", "") for chunk in output]
+                )
 
         elif self.backend == "vllm":
             # from vllm import SamplingParams
 
-            outputs = self.model.generate(prompt, self.sampling_params)
-            report = outputs[0].outputs[0].text
+            prompt_tokens = self.model.tokenize(prompt.encode("utf-8"))
+            outputs = self.model.generate(prompt_tokens, self.sampling_params)
+            report = "".join(
+                [
+                    self.model.detokenize([token]).decode("utf-8", errors="ignore")
+                    for token in outputs
+                ]
+            )
+
+        else:
+            report = ""
 
         # Clean up output
         report = self._post_process(report)

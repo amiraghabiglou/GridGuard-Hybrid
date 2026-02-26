@@ -59,7 +59,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        poetry run pytest tests/unit -v --cov=src --cov-report=xml
+        poetry run python -m pytest tests/unit -v --cov=src --cov-report=xml
 
     - name: Run integration tests
       run: |
