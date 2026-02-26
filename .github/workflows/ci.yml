@@ -38,9 +38,17 @@ jobs:
 
     - name: Install dependencies
       run: |
-        poetry install --with dev,test
-        # Download quantized SLM for testing
-        poetry run python scripts/download_quantized_model.py --model phi-3-mini
+          poetry install --with dev,test
+
+    - name: Download quantized SLM for testing
+      run: |
+        if [ -f "scripts/download_quantized_model.py" ]; then
+          poetry run python scripts/download_quantized_model.py --model phi-3-mini
+        else
+          echo "Error: scripts/download_quantized_model.py not found!"
+          ls -R  # This will list all files to help you see where it is
+          exit 1
+        fi
 
     - name: Run linting
       run: |
