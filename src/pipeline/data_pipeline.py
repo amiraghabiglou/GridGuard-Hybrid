@@ -93,5 +93,5 @@ if __name__ == "__main__":
             input_path=args.input, output_path=args.output, extract_tsfresh=args.extract_tsfresh
         )
     except Exception as e:
-        logger.exception("Pipeline failed with an unexpected error.")
+        logger.error(f"Pipeline failed with an unexpected error: {e}")
         exit(1)
