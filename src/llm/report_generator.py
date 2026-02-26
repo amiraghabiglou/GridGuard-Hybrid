@@ -111,9 +111,11 @@ Do not list raw numbers; interpret the pattern in operational terms."""
         """
         # Format key features for prompt
         key_features_str = "\n".join(
-            [f"- {feat}: {val:+.3f} impact"
+            [
+                f"- {feat}: {val:+.3f} impact"
                 for feat, val in list(detection_result.key_features.items())[:3]
-             ])
+            ]
+        )
 
         # Determine pattern type from features
         pattern_type = self._classify_pattern(detection_result.key_features)
