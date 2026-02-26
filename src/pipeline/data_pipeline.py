@@ -64,6 +64,17 @@ def run_data_pipeline(input_path: str, output_path: str, extract_tsfresh: bool =
         labels = df_raw.set_index("consumer_id")["label"]
         final_df = final_df.join(labels, how="left")
 
+        initial_count = len(final_df)
+        final_df = final_df.dropna(subset=["label"])
+        dropped_count = initial_count - len(final_df)
+
+        if dropped_count > 0:
+            logger.warning(
+                f"Dropped {dropped_count} "
+                f"consumers due to missing labels "
+                f"after feature extraction."
+            )
+
     # 6. Save Output
     # We use Parquet for production because it preserves schema and is 10x faster than CSV
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
