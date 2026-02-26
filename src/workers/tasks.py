@@ -4,7 +4,7 @@ from src.features.extractors import ElectricityFeatureExtractor
 from src.models.ensemble import HybridTheftDetector
 from src.llm.report_generator import TheftReportGenerator
 
-celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+celery_app = Celery("tasks", broker="redis://redis:6379/0", backend="redis://redis:6379/0")
 
 
 @celery_app.task(bind=True, name="process_theft_analysis")

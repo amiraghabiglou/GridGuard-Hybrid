@@ -10,10 +10,7 @@ client = TestClient(app)
 def sample_payload():
     return {
         "consumers": [
-            {
-                "consumer_id": "SGCC_999",
-                "consumption_values": [10.5, 10.2, 0.0, 0.0, 0.0, 8.5, 9.0]
-            }
+            {"consumer_id": "SGCC_999", "consumption_values": [10.5, 10.2, 0.0, 0.0, 0.0, 8.5, 9.0]}
         ]
     }
 

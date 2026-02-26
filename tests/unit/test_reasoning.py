@@ -14,18 +14,15 @@ def mock_detection_result():
         risk_tier="CRITICAL",
         key_features={
             "domain__zero_consumption_ratio": 0.45,
-            "value__linear_trend__attr_\"slope\"": -0.12
+            'value__linear_trend__attr_"slope"': -0.12,
         },
-        explanation="High risk of bypass"
+        explanation="High risk of bypass",
     )
 
 
 def test_feature_translation_integrity():
     """Ensure all critical TSFRESH features have human-readable mappings."""
-    required_keys = [
-        "value__linear_trend__attr_\"slope\"",
-        "domain__zero_consumption_ratio"
-    ]
+    required_keys = ['value__linear_trend__attr_"slope"', "domain__zero_consumption_ratio"]
     for key in required_keys:
         assert key in FEATURE_TRANSLATIONS
         assert isinstance(FEATURE_TRANSLATIONS[key], str)

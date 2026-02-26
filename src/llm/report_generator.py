@@ -43,11 +43,13 @@ Identify the specific consumption behavior that triggered this alert.
 Suggest inspection priority and focus areas (meter tampering, bypass, or data manipulation).
 Do not list raw numbers; interpret the pattern in operational terms."""
 
-    def __init__(self,
-                 model_path: Optional[str] = None,
-                 backend: str = "llama.cpp",  # or "vllm", "transformers"
-                 max_tokens: int = 256,
-                 temperature: float = 0.3):
+    def __init__(
+        self,
+        model_path: Optional[str] = None,
+        backend: str = "llama.cpp",  # or "vllm", "transformers"
+        max_tokens: int = 256,
+        temperature: float = 0.3,
+    ):
         """
         Initialize report generator with quantized SLM.
 
@@ -72,29 +74,32 @@ Do not list raw numbers; interpret the pattern in operational terms."""
         if self.backend == "llama.cpp":
             try:
                 from llama_cpp import Llama
+
                 # Load 4-bit quantized model for edge deployment
                 self.model = Llama(
                     model_path=self.model_path,
                     n_ctx=2048,  # Sufficient for structured prompts
                     n_threads=4,  # Optimize for utility edge servers
-                    verbose=False
+                    verbose=False,
                 )
                 logger.info(f"Loaded Llama.cpp model from {self.model_path}")
             except ImportError:
-                raise RuntimeError("llama-cpp-python not installed. Install with: pip install llama-cpp-python")
+                raise RuntimeError(
+                    "llama-cpp-python not installed. Install with: pip install llama-cpp-python"
+                )
 
         elif self.backend == "vllm":
             try:
                 from vllm import LLM, SamplingParams
+
                 self.model = LLM(
                     model=self.model_path,
                     quantization="awq",  # or "gptq"
                     max_model_len=2048,
-                    tensor_parallel_size=1
+                    tensor_parallel_size=1,
                 )
                 self.sampling_params = SamplingParams(
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens
+                    temperature=self.temperature, max_tokens=self.max_tokens
                 )
                 logger.info(f"Loaded vLLM model from {self.model_path}")
             except ImportError:
@@ -108,10 +113,12 @@ Do not list raw numbers; interpret the pattern in operational terms."""
         Avoids token-inflation by using structured data, not raw time-series text.
         """
         # Format key features for prompt
-        key_features_str = "\n".join([
-            f"- {feat}: {val:+.3f} impact"
-            for feat, val in list(detection_result.key_features.items())[:3]
-        ])
+        key_features_str = "\n".join(
+            [
+                f"- {feat}: {val:+.3f} impact"
+                for feat, val in list(detection_result.key_features.items())[:3]
+            ]
+        )
 
         # Determine pattern type from features
         pattern_type = self._classify_pattern(detection_result.key_features)
@@ -126,7 +133,7 @@ Do not list raw numbers; interpret the pattern in operational terms."""
             anomaly_score=detection_result.anomaly_score,
             key_features_formatted=key_features_str,
             primary_feature=primary[0],
-            pattern_type=pattern_type
+            pattern_type=pattern_type,
         )
 
         if self.model is None:
@@ -138,19 +145,17 @@ Do not list raw numbers; interpret the pattern in operational terms."""
             output = self.model.create_chat_completion(
                 messages=[
                     {"role": "system", "content": self.SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=self.temperature,
-                max_tokens=self.max_tokens
+                max_tokens=self.max_tokens,
             )
             report = output["choices"][0]["message"]["content"]
 
         elif self.backend == "vllm":
             from vllm import SamplingParams
-            outputs = self.model.generate(
-                prompt,
-                self.sampling_params
-            )
+
+            outputs = self.model.generate(prompt, self.sampling_params)
             report = outputs[0].outputs[0].text
 
         # Clean up output
@@ -163,7 +168,9 @@ Do not list raw numbers; interpret the pattern in operational terms."""
 
         if "zero" in features_str or "strike_below" in features_str:
             return "Zero Consumption / Meter Bypass"
-        elif "trend" in features_str and any(v < 0 for k, v in key_features.items() if "trend" in k):
+        elif "trend" in features_str and any(
+            v < 0 for k, v in key_features.items() if "trend" in k
+        ):
             return "Declining Consumption Trend"
         elif "sudden_drop" in features_str:
             return "Sudden Usage Reduction"
@@ -193,18 +200,18 @@ Do not list raw numbers; interpret the pattern in operational terms."""
             ),
             "LOW": (
                 f"Minor anomalies detected. No immediate action required for {detection_result.consumer_id}."
-            )
+            ),
         }
         return templates.get(tier, templates["MEDIUM"])
 
     def _post_process(self, text: str) -> str:
         """Clean and format generated text."""
         # Remove any markdown code blocks
-        text = re.sub(r'```[\s\S]*?```', '', text)
+        text = re.sub(r"```[\s\S]*?```", "", text)
         # Remove multiple newlines
-        text = re.sub(r'\n+', '\n', text).strip()
+        text = re.sub(r"\n+", "\n", text).strip()
         # Ensure single space after periods
-        text = re.sub(r'\.(?!\s)', '. ', text)
+        text = re.sub(r"\.(?!\s)", ". ", text)
         return text
 
     def batch_generate(self, detection_results: List) -> Dict[str, str]:

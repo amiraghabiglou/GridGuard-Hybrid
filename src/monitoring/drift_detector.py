@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DriftReport:
     """Structured drift detection report."""
+
     feature_name: str
     drift_detected: bool
     test_type: str  # 'ks', 'psi', 'wasserstein'
@@ -38,11 +39,13 @@ class ElectricityDriftMonitor:
     4. Adversarial adaptation (fraudsters changing tactics)
     """
 
-    def __init__(self,
-                 reference_data: pd.DataFrame,
-                 psi_threshold: float = 0.2,
-                 ks_threshold: float = 0.05,
-                 features_to_monitor: Optional[List[str]] = None):
+    def __init__(
+        self,
+        reference_data: pd.DataFrame,
+        psi_threshold: float = 0.2,
+        ks_threshold: float = 0.05,
+        features_to_monitor: Optional[List[str]] = None,
+    ):
         """
         Initialize drift monitor with reference distribution.
 
@@ -61,10 +64,10 @@ class ElectricityDriftMonitor:
         for col in self.features:
             if col in reference_data.columns:
                 self.reference_stats[col] = {
-                    'mean': reference_data[col].mean(),
-                    'std': reference_data[col].std(),
-                    'quantiles': reference_data[col].quantile([0.1, 0.25, 0.5, 0.75, 0.9]).values,
-                    'bins': self._calculate_bins(reference_data[col])
+                    "mean": reference_data[col].mean(),
+                    "std": reference_data[col].std(),
+                    "quantiles": reference_data[col].quantile([0.1, 0.25, 0.5, 0.75, 0.9]).values,
+                    "bins": self._calculate_bins(reference_data[col]),
                 }
 
     def _calculate_bins(self, series: pd.Series, n_bins: int = 10) -> np.ndarray:
@@ -72,10 +75,9 @@ class ElectricityDriftMonitor:
         # Use deciles for stable binning
         return np.percentile(series.dropna(), np.linspace(0, 100, n_bins + 1))
 
-    def calculate_psi(self,
-                      reference: pd.Series,
-                      current: pd.Series,
-                      bins: Optional[np.ndarray] = None) -> float:
+    def calculate_psi(
+        self, reference: pd.Series, current: pd.Series, bins: Optional[np.ndarray] = None
+    ) -> float:
         """
         Calculate Population Stability Index.
         PSI < 0.1: No change
@@ -120,11 +122,7 @@ class ElectricityDriftMonitor:
             ks_stat, ks_p = stats.ks_2samp(ref_series, curr_series)
 
             # PSI (population stability)
-            psi = self.calculate_psi(
-                ref_series,
-                curr_series,
-                self.reference_stats[feature]['bins']
-            )
+            psi = self.calculate_psi(ref_series, curr_series, self.reference_stats[feature]["bins"])
 
             # Wasserstein distance (mean shift magnitude)
             wasserstein = stats.wasserstein_distance(ref_series, curr_series)
@@ -134,24 +132,26 @@ class ElectricityDriftMonitor:
             psi_drift = psi > self.psi_threshold
 
             # Calculate percent change in mean
-            ref_mean = self.reference_stats[feature]['mean']
+            ref_mean = self.reference_stats[feature]["mean"]
             curr_mean = curr_series.mean()
             pct_change = ((curr_mean - ref_mean) / abs(ref_mean) * 100) if ref_mean != 0 else 0
 
             # Use most sensitive test for final decision
             drift_detected = ks_drift or psi_drift
 
-            reports.append(DriftReport(
-                feature_name=feature,
-                drift_detected=drift_detected,
-                test_type='combined',
-                statistic=max(ks_stat, psi),
-                p_value=ks_p if ks_drift else None,
-                threshold=self.psi_threshold,
-                reference_mean=ref_mean,
-                current_mean=curr_mean,
-                percent_change=pct_change
-            ))
+            reports.append(
+                DriftReport(
+                    feature_name=feature,
+                    drift_detected=drift_detected,
+                    test_type="combined",
+                    statistic=max(ks_stat, psi),
+                    p_value=ks_p if ks_drift else None,
+                    threshold=self.psi_threshold,
+                    reference_mean=ref_mean,
+                    current_mean=curr_mean,
+                    percent_change=pct_change,
+                )
+            )
 
         return reports
 
@@ -163,22 +163,28 @@ class ElectricityDriftMonitor:
             return None
 
         # Categorize drift types
-        consumption_features = [r for r in significant_drifts
-                                if any(x in r.feature_name for x in ['mean', 'consumption', 'value__'])]
-        variance_features = [r for r in significant_drifts
-                             if any(x in r.feature_name for x in ['std', 'variance', 'entropy'])]
+        consumption_features = [
+            r
+            for r in significant_drifts
+            if any(x in r.feature_name for x in ["mean", "consumption", "value__"])
+        ]
+        variance_features = [
+            r
+            for r in significant_drifts
+            if any(x in r.feature_name for x in ["std", "variance", "entropy"])
+        ]
 
         alert = {
-            'timestamp': datetime.now().isoformat(),
-            'alert_level': 'CRITICAL' if len(significant_drifts) > 5 else 'WARNING',
-            'total_drifted_features': len(significant_drifts),
-            'drifted_features': [r.feature_name for r in significant_drifts],
-            'summary': {
-                'consumption_pattern_shift': len(consumption_features) > 0,
-                'variability_change': len(variance_features) > 0,
-                'max_percent_change': max([abs(r.percent_change) for r in significant_drifts])
+            "timestamp": datetime.now().isoformat(),
+            "alert_level": "CRITICAL" if len(significant_drifts) > 5 else "WARNING",
+            "total_drifted_features": len(significant_drifts),
+            "drifted_features": [r.feature_name for r in significant_drifts],
+            "summary": {
+                "consumption_pattern_shift": len(consumption_features) > 0,
+                "variability_change": len(variance_features) > 0,
+                "max_percent_change": max([abs(r.percent_change) for r in significant_drifts]),
             },
-            'recommended_action': self._recommend_action(significant_drifts)
+            "recommended_action": self._recommend_action(significant_drifts),
         }
 
         return alert
@@ -195,8 +201,9 @@ class ElectricityDriftMonitor:
         else:
             return "MONITOR: Investigate specific drifted features. Adjust thresholds if seasonal."
 
-    def update_reference(self, new_reference: pd.DataFrame,
-                         validation_period: Optional[pd.DataFrame] = None):
+    def update_reference(
+        self, new_reference: pd.DataFrame, validation_period: Optional[pd.DataFrame] = None
+    ):
         """Update reference distribution after retraining."""
         if validation_period is not None:
             # Validate new reference is stable
@@ -209,9 +216,9 @@ class ElectricityDriftMonitor:
         for col in self.features:
             if col in new_reference.columns:
                 self.reference_stats[col] = {
-                    'mean': new_reference[col].mean(),
-                    'std': new_reference[col].std(),
-                    'quantiles': new_reference[col].quantile([0.1, 0.25, 0.5, 0.75, 0.9]).values,
-                    'bins': self._calculate_bins(new_reference[col])
+                    "mean": new_reference[col].mean(),
+                    "std": new_reference[col].std(),
+                    "quantiles": new_reference[col].quantile([0.1, 0.25, 0.5, 0.75, 0.9]).values,
+                    "bins": self._calculate_bins(new_reference[col]),
                 }
         logger.info("Updated reference distribution for drift monitoring")

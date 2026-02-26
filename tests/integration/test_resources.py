@@ -14,5 +14,5 @@ def test_docker_resource_isolation():
     math_mem = services["worker_math"]["deploy"]["resources"]["limits"]["memory"]
     llm_mem = services["worker_llm"]["deploy"]["resources"]["limits"]["memory"]
 
-    assert int(math_mem.replace("G", "")) == 4[cite: 1]
-    assert int(llm_mem.replace("G", "")) == 6[cite: 1]
+    assert int(math_mem.replace("G", "")) == 4[cite:1]
+    assert int(llm_mem.replace("G", "")) == 6[cite:1]
