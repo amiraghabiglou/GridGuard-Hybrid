@@ -5,8 +5,12 @@ Uses quantized Phi-3 or Llama-3-8B for edge deployment.
 """
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from llama_cpp import Llama
+    from vllm import SamplingParams
 logger = logging.getLogger(__name__)
 
 
@@ -60,49 +64,26 @@ Do not list raw numbers; interpret the pattern in operational terms."""
         self.backend = backend
         self.max_tokens = max_tokens
         self.temperature = temperature
-        self.model = None
+        self.model: Optional["Llama"] = None
+        self.sampling_params: Any = None
         self.tokenizer = None
 
         if model_path:
             self._load_model()
 
     def _load_model(self):
-        """Load quantized model based on backend."""
+        if not self.model_path:
+            return
+
         if self.backend == "llama.cpp":
-            try:
-                from llama_cpp import Llama
-
-                # Load 4-bit quantized model for edge deployment
-                self.model = Llama(
-                    model_path=self.model_path,
-                    n_ctx=2048,  # Sufficient for structured prompts
-                    n_threads=4,  # Optimize for utility edge servers
-                    verbose=False,
-                )
-                logger.info(f"Loaded Llama.cpp model from {self.model_path}")
-            except ImportError:
-                raise RuntimeError(
-                    "llama-cpp-python not installed. Install with: pip install llama-cpp-python"
-                )
-
-        elif self.backend == "vllm":
-            try:
-                from vllm import LLM, SamplingParams
-
-                self.model = LLM(
-                    model=self.model_path,
-                    quantization="awq",  # or "gptq"
-                    max_model_len=2048,
-                    tensor_parallel_size=1,
-                )
-                self.sampling_params = SamplingParams(
-                    temperature=self.temperature, max_tokens=self.max_tokens
-                )
-                logger.info(f"Loaded vLLM model from {self.model_path}")
-            except ImportError:
-                raise RuntimeError("vllm not installed")
-        else:
-            raise ValueError(f"Unsupported backend: {self.backend}")
+            from llama_cpp import Llama
+            # Remove the ': Llama' here to prevent the [no-redef] error
+            self.model = Llama(
+                model_path=self.model_path,
+                n_ctx=2048,
+                n_threads=4,
+                verbose=False
+            )
 
     def generate_report(self, detection_result) -> str:
         """
