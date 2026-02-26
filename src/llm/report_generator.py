@@ -3,11 +3,8 @@ Small Language Model (SLM) component for generating natural language
 investigation reports from structured anomaly detection outputs.
 Uses quantized Phi-3 or Llama-3-8B for edge deployment.
 """
-import json
 import logging
 import re
-from dataclasses import asdict
-from pathlib import Path
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -38,7 +35,7 @@ Focus on actionable insights for field inspection teams. Be specific about consu
 - Pattern type: {pattern_type}
 
 ### Investigation Instructions:
-Generate a 2-3 sentence investigation summary for the field team. 
+Generate a 2-3 sentence investigation summary for the field team.
 Identify the specific consumption behavior that triggered this alert.
 Suggest inspection priority and focus areas (meter tampering, bypass, or data manipulation).
 Do not list raw numbers; interpret the pattern in operational terms."""
@@ -114,11 +111,9 @@ Do not list raw numbers; interpret the pattern in operational terms."""
         """
         # Format key features for prompt
         key_features_str = "\n".join(
-            [
-                f"- {feat}: {val:+.3f} impact"
+            [f"- {feat}: {val:+.3f} impact"
                 for feat, val in list(detection_result.key_features.items())[:3]
-            ]
-        )
+             ])
 
         # Determine pattern type from features
         pattern_type = self._classify_pattern(detection_result.key_features)
@@ -153,7 +148,7 @@ Do not list raw numbers; interpret the pattern in operational terms."""
             report = output["choices"][0]["message"]["content"]
 
         elif self.backend == "vllm":
-            from vllm import SamplingParams
+            # from vllm import SamplingParams
 
             outputs = self.model.generate(prompt, self.sampling_params)
             report = outputs[0].outputs[0].text

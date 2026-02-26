@@ -2,10 +2,9 @@
 Hybrid anomaly detection: Isolation Forest for unsupervised scoring +
 XGBoost for supervised classification with Isolation Forest features as input.
 """
-import json
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import joblib
 import numpy as np
@@ -13,8 +12,8 @@ import pandas as pd
 import shap
 import xgboost as xgb
 from sklearn.ensemble import IsolationForest
-from sklearn.metrics import classification_report, f1_score, precision_recall_curve, roc_auc_score
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
@@ -141,7 +140,7 @@ class HybridTheftDetector:
         X_train_enhanced = np.column_stack([X_train_scaled, if_train_scores])
         X_val_enhanced = np.column_stack([X_val_scaled, if_val_scores])
 
-        enhanced_feature_names = self.feature_names + ["isolation_forest_score"]
+        # enhanced_feature_names = self.feature_names + ["isolation_forest_score"]
 
         # Step 3: Train XGBoost with early stopping
         logger.info("Training XGBoost classifier...")

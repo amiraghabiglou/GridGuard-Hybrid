@@ -1,4 +1,5 @@
 # src/workers/tasks.py
+import pandas as pd
 from celery import Celery
 
 from src.features.extractors import ElectricityFeatureExtractor

@@ -2,11 +2,10 @@
 Data drift detection for electricity theft detection pipeline.
 Monitors for seasonal changes, consumption pattern shifts, and model degradation.
 """
-import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -126,7 +125,7 @@ class ElectricityDriftMonitor:
             psi = self.calculate_psi(ref_series, curr_series, self.reference_stats[feature]["bins"])
 
             # Wasserstein distance (mean shift magnitude)
-            wasserstein = stats.wasserstein_distance(ref_series, curr_series)
+            # wasserstein = stats.wasserstein_distance(ref_series, curr_series)
 
             # Determine if drift detected
             ks_drift = ks_p < self.ks_threshold

@@ -3,12 +3,12 @@ Time-series feature extraction using TSFRESH.
 Extracts 700+ statistical features optimized for electricity theft detection.
 """
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
 from tsfresh import extract_features, select_features
-from tsfresh.feature_extraction import ComprehensiveFCParameters, EfficientFCParameters
+from tsfresh.feature_extraction import EfficientFCParameters
 from tsfresh.utilities.dataframe_functions import impute
 
 logger = logging.getLogger(__name__)

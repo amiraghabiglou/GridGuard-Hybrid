@@ -1,4 +1,6 @@
-from fastapi import BackgroundTasks, FastAPI
+from typing import Dict, List
+
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 from src.workers.tasks import process_theft_analysis
