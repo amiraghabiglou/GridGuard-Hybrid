@@ -164,16 +164,16 @@ Hybrid Architecture: Based on "A Hybrid Machine Learning Framework for Electrici
 
 ## Key Production-Ready Elements
 
-1. **Efficient Architecture**: Uses TSFRESH for feature extraction (not raw text), Isolation Forest for anomaly scoring, XGBoost for classification, and SLM **only** for report generation [^1^][^2^].
+1. **Efficient Architecture**: Uses TSFRESH for feature extraction (not raw text), Isolation Forest for anomaly scoring, XGBoost for classification, and SLM **only** for report generation.
 
 2. **Quantization**: Includes GGUF/AWQ quantization scripts for edge deployment on utility company servers.
 
-3. **Drift Monitoring**: Implements PSI (Population Stability Index) and KS-tests to detect seasonal changes and infrastructure updates [^1^].
+3. **Drift Monitoring**: Implements PSI (Population Stability Index) and KS-tests to detect seasonal changes and infrastructure updates.
 
 4. **CI/CD**: GitHub Actions workflow with automated testing, training, drift detection, and containerized deployment.
 
 5. **Explainability**: SHAP integration for every prediction, enabling transparency for field inspection teams.
 
-6. **Class Imbalance Handling**: SMOTETomek resampling and XGBoost `scale_pos_weight` for the highly imbalanced SGCC dataset [^1^].
+6. **Class Imbalance Handling**: SMOTETomek resampling and XGBoost `scale_pos_weight` for the highly imbalanced SGCC dataset.
 
 This architecture avoids the "textualizing time-series" anti-pattern while delivering the interpretability benefits of SLMs through structured prompting.
