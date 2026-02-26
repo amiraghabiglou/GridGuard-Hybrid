@@ -1,0 +1,22 @@
+feature_extraction:
+  tsfresh_settings: "EfficientFCParameters"  # or "ComprehensiveFCParameters"
+  n_jobs: 4
+
+detection:
+  isolation_forest:
+    contamination: 0.05
+    n_estimators: 100
+  xgboost:
+    max_depth: 6
+    learning_rate: 0.05
+    scale_pos_weight: 10  # For class imbalance
+
+llm:
+  model: "phi-3-mini-4k-instruct"
+  quantization: "Q4_K_M"  # 4-bit quantization
+  max_tokens: 256
+  temperature: 0.3  # Low for factual reports
+
+monitoring:
+  psi_threshold: 0.2  # Alert if >0.2
+  check_frequency: "daily"
