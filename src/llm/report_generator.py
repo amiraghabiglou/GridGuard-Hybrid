@@ -124,13 +124,13 @@ Do not list raw numbers; interpret the pattern in operational terms."""
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-            # To:
+
             if isinstance(output, dict):
-                report = output["choices"][0]["message"]["content"]
+                content = output["choices"][0]["message"].get("content")
+                report = content if content is not None else ""
             else:
-                # Handle streaming response (Iterator case)
                 report = "".join(
-                    [chunk["choices"][0]["delta"].get("content", "") for chunk in output]
+                    [str(chunk["choices"][0]["delta"].get("content", "")) for chunk in output]
                 )
 
         elif self.backend == "vllm":
