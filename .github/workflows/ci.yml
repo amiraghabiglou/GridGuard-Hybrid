@@ -55,7 +55,8 @@ jobs:
         poetry run black --check src tests
         poetry run isort --check-only src tests
         poetry run flake8 src tests
-        poetry run mypy src
+        # Let mypy.ini handle the paths via mypy_path
+        poetry run mypy --config-file mypy.ini
 
     - name: Run unit tests
       run: |

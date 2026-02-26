@@ -1,4 +1,6 @@
 # src/workers/tasks.py
+from dataclasses import asdict
+
 import pandas as pd
 from celery import Celery
 
@@ -22,7 +24,7 @@ def process_theft_analysis(self, consumer_data_batch):
     # 2. Prediction
     detector = HybridTheftDetector.load("models/hybrid_detector.joblib")
     # Only calculate SHAP if necessary
-    results = detector.predict(features, calculate_shap=True)
+    results = detector.predict(features)
 
     # 3. Reasoning (The Memory-Intensive Part)
     # Note: In a larger scale, this would be a separate microservice call
@@ -34,6 +36,6 @@ def process_theft_analysis(self, consumer_data_batch):
         if res.fraud_probability > 0.6:  # High-risk threshold
             report = report_gen.generate_report(res)
 
-        final_output.append({**res.dict(), "report": report})
+        final_output.append({**asdict(res), "report": report})
 
     return final_output

@@ -205,6 +205,8 @@ class HybridTheftDetector:
         fraud_probs = self.xgboost_model.predict_proba(X_enhanced)[:, 1]
 
         # SHAP values for explainability
+        if self.shap_explainer is None:
+            raise RuntimeError("SHAP explainer not initialized")
         shap_values = self.shap_explainer.shap_values(X_enhanced)
 
         results = []
@@ -224,11 +226,11 @@ class HybridTheftDetector:
                 instance_shap = shap_values[1][i]  # Class 1 (fraud) contributions
             else:
                 instance_shap = shap_values[i]
-
+            feature_names = self.feature_names or []
             top_indices = np.argsort(np.abs(instance_shap))[-5:][::-1]
             key_features = {
-                self.feature_names[idx]
-                if idx < len(self.feature_names)
+                feature_names[idx]
+                if idx < len(feature_names)
                 else "isolation_forest_score": float(instance_shap[idx])
                 for idx in top_indices
             }
