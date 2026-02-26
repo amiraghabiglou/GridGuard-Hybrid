@@ -196,8 +196,10 @@ class ElectricityDriftMonitor:
         max_change = max([abs(d.percent_change) for d in drifts])
 
         if n_drifts > 10 or max_change > 50:
-            return ("IMMEDIATE: Retrain model with new reference data. S"
-                    "ignificant distribution shift detected.")
+            return (
+                "IMMEDIATE: Retrain model with new reference data. S"
+                "ignificant distribution shift detected."
+            )
         elif n_drifts > 5 or max_change > 30:
             return "SCHEDULED: Plan model retraining within 1 week. Monitor inspection accuracy."
         else:
