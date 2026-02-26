@@ -71,40 +71,38 @@ class ElectricityFeatureExtractor:
             "value__friedrich_coefficients__m_3__r_30__coeff_0",
         ]
 
+    # src/features/extractors.py
+
     def prepare_data(
-        self,
-        df: pd.DataFrame,
-        consumer_id_col: str = "consumer_id",
-        date_col: str = "date",
-        value_col: str = "consumption",
+        self, df: pd.DataFrame, consumer_id_col: str = "consumer_id", value_col: str = "consumption"
     ) -> pd.DataFrame:
         """
-        Convert wide-format SGCC data to TSFRESH long format.
-
-        SGCC format: consumer_id | date_1 | date_2 | ... | date_1035 | label
-        TSFRESH format: id | time | value
+        Convert wide-format SGCC data to TSFRESH long format with robust index handling.
         """
-        # Handle missing values - forward fill then backward fill per consumer
         df = df.copy()
 
-        # Melt from wide to long format
+        # Identify all columns that are NOT the ID or Label (the consumption days)
         id_vars = [consumer_id_col, "label"] if "label" in df.columns else [consumer_id_col]
-        value_vars = [col for col in df.columns if col not in id_vars]
 
-        long_df = pd.melt(
-            df, id_vars=id_vars, value_vars=value_vars, var_name="time", value_name="value"
-        )
+        # Melt from wide (consumer_id, day_0, day_1...) to long (id, time, value)
+        long_df = pd.melt(df, id_vars=id_vars, var_name="time", value_name="value")
 
-        # Convert time to numeric index for TSFRESH
-        long_df["time"] = pd.to_datetime(long_df["time"], errors="coerce")
-        long_df = long_df.dropna(subset=["time"])
-        long_df["time"] = long_df.groupby(consumer_id_col).cumcount()
+        # CRITICAL FIX: Instead of to_datetime, extract the day number as an integer
+        # This handles both '2014-01-01' and 'day_0' formats safely.
+        if long_df["time"].iloc[0].startswith("day_"):
+            long_df["time"] = long_df["time"].str.replace("day_", "").astype(int)
+        else:
+            # Fallback for actual date strings, but ensure we don't drop NaT
+            long_df["time"] = pd.to_datetime(long_df["time"], errors="coerce")
+            # Fill unparseable dates with a sequence to avoid dropping data
+            long_df["time"] = long_df.groupby(consumer_id_col).cumcount()
 
         # Handle missing consumption values
         long_df["value"] = long_df.groupby(consumer_id_col)["value"].transform(
-            lambda x: x.fillna(method="ffill").fillna(method="bfill").fillna(0)
+            lambda x: x.ffill().bfill().fillna(0)
         )
 
+        # Rename to TSFRESH standard
         return long_df.rename(columns={consumer_id_col: "id"})
 
     def extract_features(
