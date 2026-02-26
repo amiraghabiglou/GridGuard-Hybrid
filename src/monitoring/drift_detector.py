@@ -51,7 +51,8 @@ class ElectricityDriftMonitor:
 
         Args:
             reference_data: Baseline feature distribution (training data)
-            psi_threshold: Population Stability Index threshold (0.1=stable, 0.2=moderate, >0.25=significant)
+            psi_threshold: Population Stability Index threshold
+            (0.1=stable, 0.2=moderate, >0.25=significant)
             ks_threshold: Kolmogorov-Smirnov test p-value threshold
         """
         self.reference = reference_data
@@ -195,7 +196,8 @@ class ElectricityDriftMonitor:
         max_change = max([abs(d.percent_change) for d in drifts])
 
         if n_drifts > 10 or max_change > 50:
-            return "IMMEDIATE: Retrain model with new reference data. Significant distribution shift detected."
+            return ("IMMEDIATE: Retrain model with new reference data. S"
+                    "ignificant distribution shift detected.")
         elif n_drifts > 5 or max_change > 30:
             return "SCHEDULED: Plan model retraining within 1 week. Monitor inspection accuracy."
         else:

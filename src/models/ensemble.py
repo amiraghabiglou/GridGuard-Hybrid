@@ -253,11 +253,16 @@ class HybridTheftDetector:
         direction = "increases" if impact > 0 else "decreases"
 
         explanations = {
-            "isolation_forest_score": f"Unsupervised anomaly detection flagged unusual consumption patterns",
-            "value__standard_deviation": f"Abnormal consumption variability {direction} fraud risk",
-            'value__linear_trend__attr_"slope"': f"Consumption trend {direction} fraud risk",
-            "value__longest_strike_below_mean": f"Extended low-usage periods {direction} fraud risk",
-            "domain__zero_consumption_ratio": f"Zero consumption frequency {direction} fraud risk",
+            "isolation_forest_score": f"Unsupervised anomaly detection "
+                                      f"flagged unusual consumption patterns",
+            "value__standard_deviation":
+                f"Abnormal consumption variability {direction} fraud risk",
+            'value__linear_trend__attr_"slope"':
+                f"Consumption trend {direction} fraud risk",
+            "value__longest_strike_below_mean":
+                f"Extended low-usage periods {direction} fraud risk",
+            "domain__zero_consumption_ratio":
+                f"Zero consumption frequency {direction} fraud risk",
             "domain__sudden_drop_flag": f"Sudden consumption drop detected",
         }
 

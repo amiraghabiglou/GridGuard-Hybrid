@@ -183,20 +183,24 @@ Do not list raw numbers; interpret the pattern in operational terms."""
 
         templates = {
             "CRITICAL": (
-                f"URGENT: Consumer {detection_result.consumer_id} shows strong indicators of electricity theft. "
+                f"URGENT: Consumer {detection_result.consumer_id} "
+                f"shows strong indicators of electricity theft. "
                 f"Pattern suggests {pattern_type} with {prob:.1%} confidence. "
                 f"Recommend immediate physical inspection of meter installation."
             ),
             "HIGH": (
-                f"Consumer {detection_result.consumer_id} exhibits suspicious consumption anomalies consistent with "
-                f"{pattern_type}. Probability of fraud: {prob:.1%}. Schedule inspection within 48 hours."
+                f"Consumer {detection_result.consumer_id} "
+                f"exhibits suspicious consumption anomalies consistent with "
+                f"{pattern_type}. Probability of fraud: {prob:.1%}. "
+                f"Schedule inspection within 48 hours."
             ),
             "MEDIUM": (
                 f"Anomalous patterns detected for {detection_result.consumer_id}. "
                 f"Possible {pattern_type}. Monitor consumption over next billing cycle."
             ),
             "LOW": (
-                f"Minor anomalies detected. No immediate action required for {detection_result.consumer_id}."
+                f"Minor anomalies detected. No immediate action "
+                f"required for {detection_result.consumer_id}."
             ),
         }
         return templates.get(tier, templates["MEDIUM"])
