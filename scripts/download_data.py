@@ -35,5 +35,11 @@ def generate_mock_sgcc_data(output_path: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="data/raw/sgcc.csv")
+    parser.add_argument(
+        "--dataset",
+        required=True,
+        choices=["sgcc", "uci", "synthetic"],
+        help="Dataset name to download",
+    )
     args = parser.parse_args()
     generate_mock_sgcc_data(args.output)
