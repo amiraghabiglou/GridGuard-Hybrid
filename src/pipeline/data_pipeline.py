@@ -74,8 +74,20 @@ def run_data_pipeline(input_path: str, output_path: str, extract_tsfresh: bool =
                 f"consumers due to missing labels "
                 f"after feature extraction."
             )
+    # 6. Data Integrity Check
+    if final_df.empty:
+        logger.error("🛑 Data Pipeline produced an EMPTY dataframe. " "Training cannot proceed.")
+        logger.info(f"Columns found: {final_df.columns.tolist()}")
+        raise ValueError(
+            "Processed features dataframe is empty. "
+            "Check input data quality and TSFRESH settings."
+        )
 
-    # 6. Save Output
+    # 7. Imputation Safeguard
+    # Ensure any remaining NaNs (from join) are filled to prevent scikit-learn errors
+    final_df = final_df.fillna(0)
+
+    # 8. Save Output
     # We use Parquet for production because it preserves schema and is 10x faster than CSV
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     final_df.to_parquet(output_path)
