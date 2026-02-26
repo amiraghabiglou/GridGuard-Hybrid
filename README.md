@@ -153,13 +153,10 @@ kubectl apply -f k8s/hpa.yaml  # Auto-scaling
 - MLOps Setup
 
 
-# 📄 License
-MIT License - see LICENSE file.
-
 # 🙏 Acknowledgments
-SGCC Dataset: State Grid Corporation of China
-TSFRESH: Blue Yonder GmbH
-Hybrid Architecture: Based on "A Hybrid Machine Learning Framework for Electricity Fraud Detection" 
+- SGCC Dataset: State Grid Corporation of China
+- TSFRESH: Blue Yonder GmbH
+- Hybrid Architecture: Based on "A Hybrid Machine Learning Framework for Electricity Fraud Detection" 
 
 
 ## Key Production-Ready Elements
