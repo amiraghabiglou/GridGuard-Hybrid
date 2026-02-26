@@ -1,7 +1,9 @@
 import argparse
 import logging
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
 from src.models.ensemble import HybridTheftDetector
 
 logging.basicConfig(level=logging.INFO)
@@ -16,16 +18,15 @@ def train_pipeline(feature_path: str, model_output: str, metrics_output: str):
     df = pd.read_parquet(feature_path)
 
     # Separate features and labels
-    if 'label' not in df.columns:
+    if "label" not in df.columns:
         raise ValueError("Dataset must contain a 'label' column for supervised training.")
 
-    X = df.drop(columns=['label', 'consumer_id'], errors='ignore')
-    y = df['label']
+    X = df.drop(columns=["label", "consumer_id"], errors="ignore")
+    y = df["label"]
 
     logger.info("Initializing Hybrid Detector...")
     detector = HybridTheftDetector(
-        if_contamination=0.05,
-        xgb_params={'n_estimators': 100, 'max_depth': 4}
+        if_contamination=0.05, xgb_params={"n_estimators": 100, "max_depth": 4}
     )
 
     logger.info("Starting training (Isolation Forest + XGBoost)...")
@@ -37,7 +38,8 @@ def train_pipeline(feature_path: str, model_output: str, metrics_output: str):
 
     # Save metrics for CI/CD reporting
     import json
-    with open(metrics_output, 'w') as f:
+
+    with open(metrics_output, "w") as f:
         json.dump(metrics, f, indent=4)
 
     logger.info(f"Training complete. Model saved to {model_output}")

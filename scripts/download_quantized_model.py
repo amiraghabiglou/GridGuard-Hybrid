@@ -1,5 +1,6 @@
-import os
 import argparse
+import os
+
 from huggingface_hub import hf_hub_download
 
 
@@ -15,7 +16,7 @@ def download_model(model_name: str, target_dir: str):
     model_map = {
         "phi-3-mini": {
             "repo_id": "microsoft/Phi-3-mini-4k-instruct-gguf",
-            "filename": "Phi-3-mini-4k-instruct-q4.gguf"
+            "filename": "Phi-3-mini-4k-instruct-q4.gguf",
         }
     }
 
@@ -29,9 +30,7 @@ def download_model(model_name: str, target_dir: str):
 
     try:
         path = hf_hub_download(
-            repo_id=config['repo_id'],
-            filename=config['filename'],
-            local_dir=target_dir
+            repo_id=config["repo_id"], filename=config["filename"], local_dir=target_dir
         )
         print(f"Successfully downloaded model to: {path}")
     except Exception as e:

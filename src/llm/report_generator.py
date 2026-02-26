@@ -5,12 +5,11 @@ Uses quantized Phi-3 or Llama-3-8B for edge deployment.
 """
 import logging
 import re
-from typing import Any, Dict, List, Optional
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from llama_cpp import Llama
-    from vllm import SamplingParams
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,13 +76,9 @@ Do not list raw numbers; interpret the pattern in operational terms."""
 
         if self.backend == "llama.cpp":
             from llama_cpp import Llama
+
             # Remove the ': Llama' here to prevent the [no-redef] error
-            self.model = Llama(
-                model_path=self.model_path,
-                n_ctx=2048,
-                n_threads=4,
-                verbose=False
-            )
+            self.model = Llama(model_path=self.model_path, n_ctx=2048, n_threads=4, verbose=False)
 
     def generate_report(self, detection_result) -> str:
         """
