@@ -28,7 +28,8 @@ def generate_mock_sgcc_data(output_path: str):
     df.insert(0, "consumer_id", [f"CONS_{i:04d}" for i in range(num_consumers)])
     df["label"] = labels
 
-    df.to_csv(output_path, index=False)
+    output_file = os.path.join(output_path, "sgcc.csv")
+    df.to_csv(output_file, index=False)
     print(f"Mock data saved to {output_path}")
 
 
