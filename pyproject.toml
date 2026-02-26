@@ -18,6 +18,7 @@ shap = "^0.42.0"
 scipy = "^1.11.0"
 huggingface-hub = "^0.20.0"
 celery = "^5.3.0"
+setuptools = "^69.0.0"
 
 # LLM/Inference
 llama-cpp-python = "^0.2.0"
