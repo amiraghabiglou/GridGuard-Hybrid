@@ -1,35 +1,29 @@
-# docker/Dockerfile.training
+# Dockerfile.training
 FROM python:3.10-slim
 
-# Install system dependencies including git and pkg-config
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     git \
-    pkg-config \
     libopenblas-dev \
-    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install poetry
 
-COPY pyproject.toml poetry.lock* ./
+WORKDIR /app
+COPY pyproject.toml poetry.lock ./
 
-RUN poetry config virtualenvs.create false \
-    && poetry config installer.modern-installation false
+RUN poetry config virtualenvs.create false
 
-# Sanitize build environment and compile SLM interface
-RUN pip install "numpy==1.26.4" \
-    && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install "llama-cpp-python>=0.2.56" --no-cache-dir
+# BuildKit cache mount to prevent redundant compilation
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install "numpy==1.26.4" \
+    && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install "llama-cpp-python==0.2.56"
 
 RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 
-ENV MODEL_PATH=/app/models/phi-3-theft-detector.gguf
-
-ENTRYPOINT ["python", "scripts/train_models.py"]
+CMD ["python", "scripts/train_models.py"]

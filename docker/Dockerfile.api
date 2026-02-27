@@ -1,53 +1,49 @@
-# Stage 1: Builder
+# Dockerfile.api
 FROM python:3.10-slim AS builder
 
-WORKDIR /app
-
-# Install build dependencies including git and pkg-config
+# System dependencies for C-extensions and OpenBLAS
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     git \
-    pkg-config \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Fix build environment
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
+# Modernized Poetry installation unpinned from legacy virtualenv API
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install poetry
 
-COPY pyproject.toml poetry.lock* ./
+WORKDIR /app
+COPY pyproject.toml poetry.lock ./
 
-# Configure Poetry and build heavy C-extensions
-RUN poetry config virtualenvs.create false \
-    && poetry config installer.modern-installation false \
-    && pip install "numpy==1.26.4" \
-    && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install "llama-cpp-python>=0.2.56" --no-cache-dir \
-    && poetry install --only main --no-interaction --no-ansi --no-root
+# Disable virtualenvs so poetry installs directly to the system python
+RUN poetry config virtualenvs.create false
 
-# Stage 2: Production
+# BuildKit cache mount for optimized C++ compilation aligned with poetry.lock
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install "numpy==1.26.4" \
+    && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install "llama-cpp-python==0.2.56"
+
+# Install remaining dependencies. Poetry will skip rebuilding numpy and llama-cpp-python
+RUN poetry install --only main --no-interaction --no-ansi --no-root
+
+COPY src/ ./src/
+
+# ----------------------------------------------------------------------
+
 FROM python:3.10-slim AS production
+
+# Runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libopenblas-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 \
-    libopenblas0 \
-    && rm -rf /var/lib/apt/lists/*
-
+# Copy compiled environments and source code from builder
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
-
-COPY src/ ./src/
-COPY config/ ./config/
-COPY models/ ./models/
-
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+COPY --from=builder /app/src /app/src
 
 EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
-
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
