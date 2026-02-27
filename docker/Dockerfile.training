@@ -21,7 +21,10 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false \
     && poetry config installer.modern-installation false
 
-# Pre-install llama-cpp-python via pip to bypass Poetry's subprocess bug
+RUN pip install "numpy<2.0.0" \
+    && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python==0.2.0 --no-cache-dir
+
+#Pre-install llama-cpp-python via pip to bypass Poetry's subprocess bug
 RUN pip install llama-cpp-python==0.2.0
 
 # Install remaining dependencies without the root package (no README required)
