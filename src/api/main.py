@@ -31,3 +31,8 @@ async def get_results(job_id: str):
     if job_result.ready():
         return {"status": "Completed", "result": job_result.result}
     return {"status": job_result.status}
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}

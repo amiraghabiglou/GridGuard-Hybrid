@@ -1,7 +1,7 @@
 # docker/Dockerfile.training
 FROM python:3.10-slim
 
-# Install system dependencies for building C++ extensions (llama-cpp)
+# 1. Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -10,22 +10,24 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Install Poetry
-RUN pip install poetry==1.7.1
+# 2. Upgrade core tools and install Poetry
+# Upgrading virtualenv directly fixes the LogCmd import error
+RUN pip install --upgrade pip setuptools virtualenv \
+    && pip install poetry==1.7.1
 
-# Copy dependency files
-COPY pyproject.toml poetry.lock ./
+# 3. Copy dependency files
+COPY pyproject.toml poetry.lock* ./
 
-# Install all dependencies including dev/test for training scripts
+# 4. Configure Poetry and Install
+# Disabling modern-installation prevents the ephemeral env bug
 RUN poetry config virtualenvs.create false \
+    && poetry config installer.modern-installation false \
     && poetry install --no-interaction --no-ansi --no-root
 
-# Copy source code and scripts
+# 5. Copy source and scripts
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 
-# Set environment variables for model paths
 ENV MODEL_PATH=/app/models/phi-3-theft-detector.gguf
 
-# Default command is to run the training script
 ENTRYPOINT ["python", "scripts/train_models.py"]
