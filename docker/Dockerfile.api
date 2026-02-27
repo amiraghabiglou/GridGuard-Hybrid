@@ -3,23 +3,22 @@ FROM python:3.10-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Fix: Upgrade core build tools to prevent 'LogCmd' ImportError
-RUN pip install --upgrade pip setuptools virtualenv \
+# Fix build environment
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
     && pip install poetry==1.7.1
 
-# Copy dependency files
 COPY pyproject.toml poetry.lock* ./
 
-# Fix: Disable modern-installation and use --no-root to bypass README requirements
+# Pre-install the problematic library and install dependencies
 RUN poetry config virtualenvs.create false \
     && poetry config installer.modern-installation false \
+    && pip install llama-cpp-python==0.2.0 \
     && poetry install --only main --no-interaction --no-ansi --no-root
 
 # Stage 2: Production
@@ -27,29 +26,28 @@ FROM python:3.10-slim AS production
 
 WORKDIR /app
 
-# Install runtime dependencies for llama.cpp and XGBoost
+# Install runtime dependencies for llama.cpp and XGBoost [cite: 3]
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libopenblas0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder
+# Copy packages and binaries from builder
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy application code and artifacts downloaded in CI/CD
+# Copy application artifacts [cite: 3]
 COPY src/ ./src/
 COPY config/ ./config/
 COPY models/ ./models/
 
-# Create non-root user for security
+# Security: Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose API port
 EXPOSE 8000
 
-# Health check - Updated to use standard library to avoid 'requests' dependency
+# Health check using standard urllib [cite: 4]
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 

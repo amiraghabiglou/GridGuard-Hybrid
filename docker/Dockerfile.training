@@ -1,7 +1,7 @@
 # docker/Dockerfile.training
 FROM python:3.10-slim
 
-# 1. Install system dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -10,21 +10,24 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# 2. Upgrade core tools and install Poetry
-# Upgrading virtualenv directly fixes the LogCmd import error
-RUN pip install --upgrade pip setuptools virtualenv \
+# Upgrade core build tools - This specifically fixes the 'LogCmd' error
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
     && pip install poetry==1.7.1
 
-# 3. Copy dependency files
+# Copy dependency files
 COPY pyproject.toml poetry.lock* ./
 
-# 4. Configure Poetry and Install
-# Disabling modern-installation prevents the ephemeral env bug
+# Configure Poetry to use the system environment directly
 RUN poetry config virtualenvs.create false \
-    && poetry config installer.modern-installation false \
-    && poetry install --no-interaction --no-ansi --no-root
+    && poetry config installer.modern-installation false
 
-# 5. Copy source and scripts
+# Pre-install llama-cpp-python via pip to bypass Poetry's subprocess bug
+RUN pip install llama-cpp-python==0.2.0
+
+# Install remaining dependencies without the root package (no README required)
+RUN poetry install --no-interaction --no-ansi --no-root
+
+# Copy source code and scripts
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 
