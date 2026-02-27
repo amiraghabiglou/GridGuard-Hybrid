@@ -22,6 +22,36 @@ This system addresses the **critical weaknesses** of naive "text-as-input" appro
 - ✅ **Uses**: Structured feature vectors → Statistical detection → LLM interpretation
 - 🎯 **Result**: 10x faster inference, higher accuracy, interpretable outputs
 
+## 📁 Repository Structure
+```text
+├── .github/workflows/
+│   └── ci.yml               # CI/CD Pipeline (Test, Train, Drift, Build)
+├── config/
+│   └── pipeline_config.yaml  # Model & Pipeline configurations
+├── docker/
+│   ├── Dockerfile.api        # FastAPI service container
+│   └── Dockerfile.training   # Training & Quantization environment
+├── scripts/
+│   ├── download_data.py      # SGCC dataset ingestion
+│   ├── quantize_llm.py       # SLM (Phi-3) GGUF quantization
+│   └── train_models.py       # Hybrid model training orchestrator
+├── src/
+│   ├── api/                  # FastAPI Application
+│   ├── features/             # TSFRESH & Domain feature engineering
+│   ├── llm/                  # SLM Reasoning & Report generation
+│   ├── models/               # Hybrid Ensemble (Isolation Forest + XGBoost)
+│   ├── monitoring/           # Data drift detection logic
+│   ├── pipeline/             # End-to-end data processing
+│   ├── schemas/              # Pydantic models & Feature mappings
+│   └── workers/              # Celery task definitions
+├── tests/
+│   ├── integration/          # Pipeline & Resource isolation tests
+│   └── unit/                 # Reasoning & Logic tests
+├── docker-compose.yml        # Local development stack (App + Redis + Workers)
+├── pyproject.toml            # Poetry dependency management
+└── README.md
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites

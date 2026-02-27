@@ -76,77 +76,53 @@ class HybridTheftDetector:
         self.shap_explainer: Optional[shap.TreeExplainer] = None
 
     def fit(self, X: pd.DataFrame, y: pd.Series, validation_split: float = 0.2) -> Dict[str, float]:
-        """
-        Train hybrid model with Isolation Forest feature engineering.
-
-        Args:
-            X: Feature matrix (TSFRESH features)
-            y: Binary labels (1=fraud, 0=normal)
-
-        Returns:
-            Training metrics dictionary
-        """
         self.feature_names = list(X.columns)
 
-        # Handle class imbalance with SMOTETomek if available
+        # 1. Handle Class Imbalance (Requires imbalanced-learn in pyproject.toml)
         try:
             from imblearn.combine import SMOTETomek
 
             smt = SMOTETomek(random_state=42)
             X_res, y_res = smt.fit_resample(X, y)
-            logger.info(f"Applied SMOTETomek: {len(X)} -> {len(X_res)} samples")
             X, y = X_res, y_res
         except ImportError:
             logger.warning("imbalanced-learn not installed, skipping resampling")
 
-        # Split for validation
+        # 2. Split for validation
         X_train, X_val, y_train, y_val = train_test_split(
             X, y, test_size=validation_split, stratify=y, random_state=42
         )
 
-        # Scale features
+        # 3. Scaling
         if self.scale_features:
             self.scaler = StandardScaler()
             X_train_scaled = self.scaler.fit_transform(X_train)
             X_val_scaled = self.scaler.transform(X_val)
         else:
-            X_train_scaled = X_train.values
-            X_val_scaled = X_val.values
+            X_train_scaled, X_val_scaled = X_train.values, X_val.values
 
-        # Step 1: Train Isolation Forest on training data
-        logger.info("Training Isolation Forest for anomaly scoring...")
+        # 4. Isolation Forest Feature Engineering
         self.isolation_forest = IsolationForest(
-            n_estimators=self.if_n_estimators,
-            contamination=self.if_contamination,
-            random_state=42,
-            n_jobs=-1,
+            n_estimators=self.if_n_estimators, contamination=self.if_contamination, random_state=42
         )
         self.isolation_forest.fit(X_train_scaled)
 
-        # Get anomaly scores (negative = anomaly, positive = normal)
-        # Convert to 0-1 scale where 1 = highly anomalous
+        # Generate scores for BOTH sets to maintain feature alignment
         if_train_scores = -self.isolation_forest.decision_function(X_train_scaled)
         if_val_scores = -self.isolation_forest.decision_function(X_val_scaled)
 
-        # Normalize to [0, 1]
-        if_train_scores = (if_train_scores - if_train_scores.min()) / (
-            if_train_scores.max() - if_train_scores.min()
-        )
-        if_val_scores = (if_val_scores - if_val_scores.min()) / (
-            if_val_scores.max() - if_val_scores.min()
-        )
-
-        # Step 2: Add Isolation Forest score as feature to XGBoost
+        # 5. Append Enhanced Features
         X_train_enhanced = np.column_stack([X_train_scaled, if_train_scores])
         X_val_enhanced = np.column_stack([X_val_scaled, if_val_scores])
 
-        # enhanced_feature_names = self.feature_names + ["isolation_forest_score"]
-
-        # Step 3: Train XGBoost with early stopping
-        logger.info("Training XGBoost classifier...")
+        # 6. XGBoost Training - Pass X_val_enhanced to the eval_set!
         self.xgboost_model = xgb.XGBClassifier(**self.xgb_params, early_stopping_rounds=50)
-
-        self.xgboost_model.fit(X_train_enhanced, y_train, eval_set=[(X_val, y_val)], verbose=False)
+        self.xgboost_model.fit(
+            X_train_enhanced,
+            y_train,
+            eval_set=[(X_val_enhanced, y_val)],  # Fixed: No more 21 vs 20 error
+            verbose=False,
+        )
 
         # Initialize SHAP for explainability
         self.shap_explainer = shap.TreeExplainer(self.xgboost_model)
