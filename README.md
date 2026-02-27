@@ -1,6 +1,6 @@
 # Electricity Theft Detection via Hybrid SLM + Time-Series Anomaly Detection
 
-[![CI](https://github.com/yourusername/electricity-theft-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/electricity-theft-detection/actions/workflows/ci.yml)
+[![CI](https://github.com/amiraghabiglou/electricity-theft-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/amiraghabiglou/electricity-theft-detection/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -63,7 +63,7 @@ This system addresses the **critical weaknesses** of naive "text-as-input" appro
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/electricity-theft-detection.git
+git clone git@github.com:amiraghabiglou/electricity-theft-detection.git
 cd electricity-theft-detection
 
 # Install dependencies
