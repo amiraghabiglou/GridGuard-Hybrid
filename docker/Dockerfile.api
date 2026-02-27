@@ -19,10 +19,10 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
 COPY pyproject.toml poetry.lock* ./
 
 # Configure Poetry and build heavy C-extensions
-RUN poetry config virtualenvs.create false \
-    && poetry config installer.modern-installation false \
-    && pip install "numpy==1.26.4" \
-    && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install "llama-cpp-python>=0.2.56" --no-cache-dir \
+ENV POETRY_VIRTUALENVS_CREATE=false
+RUN pip install "numpy==1.26.4" \
+    && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" \
+       pip install "llama-cpp-python>=0.2.56" --no-cache-dir \
     && poetry install --only main --no-interaction --no-ansi --no-root
 
 # Stage 2: Production
