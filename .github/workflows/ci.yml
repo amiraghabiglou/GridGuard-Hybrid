@@ -46,7 +46,7 @@ jobs:
           poetry run python scripts/download_quantized_model.py --model phi-3-mini
         else
           echo "Error: scripts/download_quantized_model.py not found!"
-          ls -R  # This will list all files to help you see where it is
+          ls -R  
           exit 1
         fi
 
@@ -90,7 +90,6 @@ jobs:
     - name: Download SGCC Dataset
       run: |
         poetry install --only main
-        # In production, fetch from secure data lake
         poetry run python scripts/download_data.py --dataset sgcc --output data/raw/
 
     - name: Feature Engineering
@@ -212,7 +211,6 @@ jobs:
         file: ./docker/Dockerfile.training
         push: true
         tags: |
-          # Use the lowercase env variable here too!
           ghcr.io/${{ env.REPO_LOWER }}/theft-detection-training:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
