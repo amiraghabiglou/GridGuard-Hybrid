@@ -22,7 +22,7 @@ RUN poetry config virtualenvs.create false \
     && poetry config installer.modern-installation false
 
 # Sanitize build environment and compile SLM interface
-RUN pip install "numpy<2.0.0" \
+RUN pip install "numpy==1.26.4" \
     && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install "llama-cpp-python>=0.2.56" --no-cache-dir
 
 RUN poetry install --no-interaction --no-ansi --no-root
