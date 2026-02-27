@@ -16,6 +16,14 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false
 
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    pkg-config \
+    libopenblas-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
 # BuildKit cache mount to prevent redundant compilation
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install "numpy==1.26.4" \
