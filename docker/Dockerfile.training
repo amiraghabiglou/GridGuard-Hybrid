@@ -1,36 +1,32 @@
 # docker/Dockerfile.training
 FROM python:3.10-slim
 
-# Install system dependencies
+# Install system dependencies including git and pkg-config
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
+    git \
+    pkg-config \
+    libopenblas-dev \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Upgrade core build tools - This specifically fixes the 'LogCmd' error
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
     && pip install poetry==1.7.1
 
-# Copy dependency files
 COPY pyproject.toml poetry.lock* ./
 
-# Configure Poetry to use the system environment directly
 RUN poetry config virtualenvs.create false \
     && poetry config installer.modern-installation false
 
+# Sanitize build environment and compile SLM interface
 RUN pip install "numpy<2.0.0" \
     && CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python==0.2.0 --no-cache-dir
 
-#Pre-install llama-cpp-python via pip to bypass Poetry's subprocess bug
-RUN pip install llama-cpp-python==0.2.0
-
-# Install remaining dependencies without the root package (no README required)
 RUN poetry install --no-interaction --no-ansi --no-root
 
-# Copy source code and scripts
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 

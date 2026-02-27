@@ -1,12 +1,14 @@
-
 # Stage 1: Builder
 FROM python:3.10-slim AS builder
 
 WORKDIR /app
 
+# Install build dependencies including git and pkg-config
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
+    git \
+    pkg-config \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -16,7 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
 
 COPY pyproject.toml poetry.lock* ./
 
-# Pre-install library and install dependencies
+# Configure Poetry and build heavy C-extensions
 RUN poetry config virtualenvs.create false \
     && poetry config installer.modern-installation false \
     && pip install "numpy<2.0.0" \
@@ -28,30 +30,24 @@ FROM python:3.10-slim AS production
 
 WORKDIR /app
 
-# Install runtime dependencies for llama.cpp and XGBoost [cite: 3]
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libopenblas0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy packages and binaries from builder
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy application artifacts [cite: 3]
 COPY src/ ./src/
 COPY config/ ./config/
 COPY models/ ./models/
 
-# Security: Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
 
-# Health check using standard urllib [cite: 4]
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
-# Run FastAPI with uvicorn
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
