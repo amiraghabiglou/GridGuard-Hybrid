@@ -125,7 +125,11 @@ class HybridTheftDetector:
         )
 
         # Initialize SHAP for explainability
-        self.shap_explainer = shap.TreeExplainer(self.xgboost_model)
+        try:
+            self.shap_explainer = shap.TreeExplainer(self.xgboost_model)
+        except Exception as e:
+            logger.error(f"SHAP Explainer initialization failed: {e}")
+            self.shap_explainer = None
 
         # Validation metrics
         val_preds = self.xgboost_model.predict(X_val_enhanced)

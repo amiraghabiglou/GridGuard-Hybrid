@@ -17,8 +17,8 @@ async def detect_theft(request: DetectionRequest):
     """
     Submits a batch for analysis. Returns a job_id for polling.
     """
-    # Offload the heavy work to Celery
-    job = process_theft_analysis.delay(request.model_dump()["consumers"])
+    data = request.model_dump() if hasattr(request, "model_dump") else request.dict()
+    job = process_theft_analysis.delay(data["consumers"])
     return {"job_id": job.id, "status": "Processing"}
 
 
