@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Fix build environment
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel virtualenv \
-    && pip install poetry==1.7.1
+    && pip install poetry
 
 COPY pyproject.toml poetry.lock* ./
 
